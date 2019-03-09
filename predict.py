@@ -4,6 +4,7 @@
 
 # import the necessary packages
 from keras.models import load_model
+from pyimagesearch.smallvggnet import dumb
 import argparse
 import pickle
 import cv2

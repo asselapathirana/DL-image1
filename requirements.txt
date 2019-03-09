@@ -1,0 +1,6 @@
+matplotlib>=3.0.2
+Keras>=2.2.2
+imutils>=0.5.2
+numpy>=1.16.1+mkl
+opencv_python>=4.0.0.21
+scikit_learn>=0.20.3

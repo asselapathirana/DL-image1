@@ -1,0 +1,23 @@
+#!wing
+#!version=6.0
+##################################################################
+# Wing IDE project file                                          #
+##################################################################
+[project attributes]
+proj.directory-list = [{'dirloc': loc('pyimagesearch'),
+                        'excludes': (),
+                        'filter': u'Python Files',
+                        'include_hidden': False,
+                        'recursive': True,
+                        'watch_for_changes': True}]
+proj.file-list = [loc('predict.py'),
+                  loc('train_simple_nn.py'),
+                  loc('train_vgg.py')]
+proj.file-type = 'shared'
+proj.launch-config = {loc('predict.py'): ('project',
+        (u'--image ./panda6.jpg --model output/smallvggnet.model --label-bin output/smallvggnet_lb.pickle --width 64 --height 64',
+         '')),
+                      loc('train_vgg.py'): ('project',
+        (u'--dataset animals --model output/simple_nn.model  --label-bin output/simple_nn_lb.pickle --plot output/simple_nn_plot.png',
+         ''))}
+proj.main-file = loc('predict.py')

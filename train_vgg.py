@@ -6,7 +6,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 # import the necessary packages
-from pyimagesearch.smallvggnet import SmallVGGNet
+from pyimagesearch.smallvggnet import SmallVGGNet, dumb
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -39,13 +39,16 @@ print("[INFO] loading images...")
 data = []
 labels = []
 
+# get the classes from directory names
+classes = os.listdir(args["dataset"])
+
 # grab the image paths and randomly shuffle them
 imagePaths = sorted(list(paths.list_images(args["dataset"])))
 random.seed(42)
 random.shuffle(imagePaths)
 
 # take maximum 5000 images
-imagePaths=imagePaths[:5000]
+imagePaths=imagePaths[:50]
 
 # loop over the input images
 for imagePath in imagePaths:
@@ -58,8 +61,8 @@ for imagePath in imagePaths:
 
 	# extract the class label from the image path and update the
 	# labels list
-	label = int(imagePath.split(os.path.sep)[-2]) # directories are named as 0 and 1
-	labels.append(label)
+	l_ = imagePath.split(os.path.sep)[-2] 
+	labels.append(classes.index(l_))
 
 # scale the raw pixel intensities to the range [0, 1]
 data = np.array(data, dtype="float") / 255.0
@@ -79,6 +82,9 @@ labels = np.array(labels)
 trainY = to_categorical(trainY)
 testY = to_categorical(testY)
 
+lb=dumb()
+lb.classes_=classes
+
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
 	height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
@@ -92,7 +98,7 @@ model = SmallVGGNet.build(width=64, height=64, depth=3,
 # and batch size
 INIT_LR = 0.01
 EPOCHS = 75
-BS = 32
+BS = 64
 
 # initialize the model and optimizer (you'll want to use
 # binary_crossentropy for 2-class classification)

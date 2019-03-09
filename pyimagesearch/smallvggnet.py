@@ -9,6 +9,9 @@ from keras.layers.core import Dropout
 from keras.layers.core import Dense
 from keras import backend as K
 
+class dumb():
+	pass
+
 class SmallVGGNet:
 	@staticmethod
 	def build(width, height, depth, classes):

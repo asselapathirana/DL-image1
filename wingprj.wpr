@@ -15,7 +15,7 @@ proj.file-list = [loc('predict.py'),
                   loc('train_vgg.py')]
 proj.file-type = 'shared'
 proj.launch-config = {loc('predict.py'): ('project',
-        (u'--image ./panda6.jpg --model output/smallvggnet.model --label-bin output/smallvggnet_lb.pickle --width 64 --height 64',
+        (u'--image ./panda6.jpg --model output/concrete.model --label-bin output/concreate_lb.pickle --width 64 --height 64',
          '')),
                       loc('train_vgg.py'): ('project',
         (u'--dataset concrete --model output/concrete.model --label-bin output/concreate_lb.pickle --plot output/concrete_plot.png',

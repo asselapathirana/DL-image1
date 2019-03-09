@@ -18,6 +18,6 @@ proj.launch-config = {loc('predict.py'): ('project',
         (u'--image ./panda6.jpg --model output/smallvggnet.model --label-bin output/smallvggnet_lb.pickle --width 64 --height 64',
          '')),
                       loc('train_vgg.py'): ('project',
-        (u'--dataset animals --model output/simple_nn.model  --label-bin output/simple_nn_lb.pickle --plot output/simple_nn_plot.png',
+        (u'--dataset concrete --model output/concrete.model --label-bin output/concreate_lb.pickle --plot output/concrete_plot.png',
          ''))}
-proj.main-file = loc('predict.py')
+proj.main-file = loc('train_vgg.py')

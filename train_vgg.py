@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
+from keras.utils import to_categorical
 from imutils import paths
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,6 +44,9 @@ imagePaths = sorted(list(paths.list_images(args["dataset"])))
 random.seed(42)
 random.shuffle(imagePaths)
 
+# take maximum 5000 images
+imagePaths=imagePaths[:5000]
+
 # loop over the input images
 for imagePath in imagePaths:
 	# load the image, resize it to 64x64 pixels (the required input
@@ -54,7 +58,7 @@ for imagePath in imagePaths:
 
 	# extract the class label from the image path and update the
 	# labels list
-	label = imagePath.split(os.path.sep)[-2]
+	label = int(imagePath.split(os.path.sep)[-2]) # directories are named as 0 and 1
 	labels.append(label)
 
 # scale the raw pixel intensities to the range [0, 1]
@@ -70,9 +74,10 @@ labels = np.array(labels)
 # classification you should use Keras' to_categorical function
 # instead as the scikit-learn's LabelBinarizer will not return a
 # vector)
-lb = LabelBinarizer()
-trainY = lb.fit_transform(trainY)
-testY = lb.transform(testY)
+#lb = LabelBinarizer()
+#trainY = lb.fit_transform(trainY)
+trainY = to_categorical(trainY)
+testY = to_categorical(testY)
 
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
@@ -81,7 +86,7 @@ aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
 
 # initialize our VGG-like Convolutional Neural Network
 model = SmallVGGNet.build(width=64, height=64, depth=3,
-	classes=len(lb.classes_))
+	classes=2)
 
 # initialize our initial learning rate, # of epochs to train for,
 # and batch size
@@ -93,7 +98,9 @@ BS = 32
 # binary_crossentropy for 2-class classification)
 print("[INFO] training network...")
 opt = SGD(lr=INIT_LR, decay=INIT_LR / EPOCHS)
-model.compile(loss="categorical_crossentropy", optimizer=opt,
+#model.compile(loss="categorical_crossentropy", optimizer=opt,
+#	metrics=["accuracy"])
+model.compile(loss="binary_crossentropy", optimizer=opt,
 	metrics=["accuracy"])
 
 # train the network

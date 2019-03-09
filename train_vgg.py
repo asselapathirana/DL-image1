@@ -48,7 +48,7 @@ random.seed(42)
 random.shuffle(imagePaths)
 
 # take maximum 5000 images
-imagePaths=imagePaths[:50]
+imagePaths=imagePaths[:10000]
 
 # loop over the input images
 for imagePath in imagePaths:
@@ -98,7 +98,7 @@ model = SmallVGGNet.build(width=64, height=64, depth=3,
 # and batch size
 INIT_LR = 0.01
 EPOCHS = 75
-BS = 64
+BS = 32
 
 # initialize the model and optimizer (you'll want to use
 # binary_crossentropy for 2-class classification)

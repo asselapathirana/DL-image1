@@ -12,9 +12,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
+from keras.utils.training_utils import multi_gpu_model
 from keras.utils import to_categorical
 from imutils import paths
 import matplotlib.pyplot as plt
+import tensorflow as tf
 import numpy as np
 import argparse
 import random
@@ -32,8 +34,12 @@ ap.add_argument("-l", "--label-bin", required=True,
 	help="path to output label binarizer")
 ap.add_argument("-p", "--plot", required=True,
 	help="path to output accuracy/loss plot")
-args = vars(ap.parse_args())
+ap.add_argument("-g", "--gpus", type=int, default=1,
+	help="# of GPUs to use for training")
 
+
+args = vars(ap.parse_args())
+G = args['gpus']
 # initialize the data and labels
 print("[INFO] loading images...")
 data = []
@@ -48,7 +54,7 @@ random.seed(42)
 random.shuffle(imagePaths)
 
 # take maximum 5000 images
-imagePaths=imagePaths[:10000]
+imagePaths=imagePaths[:5000]
 
 # loop over the input images
 for imagePath in imagePaths:
@@ -90,15 +96,32 @@ aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
 	height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,
 	horizontal_flip=True, fill_mode="nearest")
 
-# initialize our VGG-like Convolutional Neural Network
-model = SmallVGGNet.build(width=64, height=64, depth=3,
+
+# check to see if we are compiling using just a single GPU
+if G <= 1:
+    print("[INFO] training with 1 GPU...")
+    # initialize our VGG-like Convolutional Neural Network
+    model=model_ = SmallVGGNet.build(width=64, height=64, depth=3,
 	classes=2)
+else:
+    print("[INFO] training with {} GPUs...".format(G))
+
+    # we'll store a copy of the model on *every* GPU and then combine
+    # the results from the gradient updates on the CPU
+    with tf.device("/cpu:0"):
+        # initialize the model
+        model_ = SmallVGGNet.build(width=64, height=64, depth=3,
+	classes=2)
+
+    # make the model parallel
+    model = multi_gpu_model(model_, gpus=G)
 
 # initialize our initial learning rate, # of epochs to train for,
 # and batch size
 INIT_LR = 0.01
-EPOCHS = 75
+EPOCHS = 5
 BS = 32
+BS_PREDICT = 32
 
 # initialize the model and optimizer (you'll want to use
 # binary_crossentropy for 2-class classification)
@@ -108,15 +131,19 @@ opt = SGD(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 #	metrics=["accuracy"])
 model.compile(loss="binary_crossentropy", optimizer=opt,
 	metrics=["accuracy"])
+model_.compile(loss="binary_crossentropy", optimizer=opt,
+	metrics=["accuracy"])
 
 # train the network
 H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BS),
 	validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS,
 	epochs=EPOCHS)
 
+
+
 # evaluate the network
 print("[INFO] evaluating network...")
-predictions = model.predict(testX, batch_size=BS)
+predictions = model.predict(testX, batch_size=BS_PREDICT)
 print(classification_report(testY.argmax(axis=1),
 	predictions.argmax(axis=1), target_names=lb.classes_))
 
@@ -136,7 +163,7 @@ plt.savefig(args["plot"])
 
 # save the model and label binarizer to disk
 print("[INFO] serializing network and label binarizer...")
-model.save(args["model"])
+model_.save(args["model"])
 f = open(args["label_bin"], "wb")
 f.write(pickle.dumps(lb))
 f.close()

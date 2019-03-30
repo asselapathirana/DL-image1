@@ -24,6 +24,15 @@ import pickle
 import cv2
 import os
 
+SIDE=227
+
+# initialize our initial learning rate, # of epochs to train for,
+# and batch size
+INIT_LR = 0.01
+EPOCHS = 10
+BS = 32
+BS_PREDICT = 32
+
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True,
@@ -54,15 +63,15 @@ random.seed(42)
 random.shuffle(imagePaths)
 
 # take maximum 5000 images
-imagePaths=imagePaths[:5000]
+#imagePaths=imagePaths[:5000]
 
 # loop over the input images
 for imagePath in imagePaths:
-	# load the image, resize it to 64x64 pixels (the required input
+	# load the image, resize it to SIDE pixels (the required input
 	# spatial dimensions of SmallVGGNet), and store the image in the
 	# data list
 	image = cv2.imread(imagePath)
-	image = cv2.resize(image, (64, 64))
+	image = cv2.resize(image, (SIDE, SIDE))
 	data.append(image)
 
 	# extract the class label from the image path and update the
@@ -101,7 +110,7 @@ aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
 if G <= 1:
     print("[INFO] training with 1 GPU...")
     # initialize our VGG-like Convolutional Neural Network
-    model=model_ = SmallVGGNet.build(width=64, height=64, depth=3,
+    model=model_ = SmallVGGNet.build(width=SIDE, height=SIDE, depth=3,
 	classes=2)
 else:
     print("[INFO] training with {} GPUs...".format(G))
@@ -110,18 +119,11 @@ else:
     # the results from the gradient updates on the CPU
     with tf.device("/cpu:0"):
         # initialize the model
-        model_ = SmallVGGNet.build(width=64, height=64, depth=3,
+        model_ = SmallVGGNet.build(width=SIDE, height=SIDE, depth=3,
 	classes=2)
 
     # make the model parallel
     model = multi_gpu_model(model_, gpus=G)
-
-# initialize our initial learning rate, # of epochs to train for,
-# and batch size
-INIT_LR = 0.01
-EPOCHS = 5
-BS = 32
-BS_PREDICT = 32
 
 # initialize the model and optimizer (you'll want to use
 # binary_crossentropy for 2-class classification)
@@ -136,7 +138,7 @@ model_.compile(loss="binary_crossentropy", optimizer=opt,
 
 # train the network
 H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BS),
-	validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS,
+	validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS, 
 	epochs=EPOCHS)
 
 

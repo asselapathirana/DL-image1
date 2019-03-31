@@ -34,7 +34,7 @@ EPOCHS = 50
 BS = 32
 BS_PREDICT = 32
 
-# construct the argument parser and parse the arguments
+#construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True,
 	help="path to input dataset of images")
@@ -112,7 +112,7 @@ if G <= 1:
     print("[INFO] training with 1 GPU...")
     # initialize our VGG-like Convolutional Neural Network
     model=model_ = SmallVGGNet.build(width=SIDE, height=SIDE, depth=3,
-	classes=2)
+    classes=2)
 else:
     print("[INFO] training with {} GPUs...".format(G))
 

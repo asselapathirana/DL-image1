@@ -14,6 +14,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
 from keras.utils.training_utils import multi_gpu_model
 from keras.utils import to_categorical
+from keras.callbacks import ModelCheckpoint, TensorBoard
 from imutils import paths
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -29,7 +30,7 @@ SIDE=227
 # initialize our initial learning rate, # of epochs to train for,
 # and batch size
 INIT_LR = 0.01
-EPOCHS = 10
+EPOCHS = 50
 BS = 32
 BS_PREDICT = 32
 
@@ -63,7 +64,7 @@ random.seed(42)
 random.shuffle(imagePaths)
 
 # take maximum 5000 images
-#imagePaths=imagePaths[:5000]
+#imagePaths=imagePaths[:1000]
 
 # loop over the input images
 for imagePath in imagePaths:
@@ -135,13 +136,24 @@ model.compile(loss="binary_crossentropy", optimizer=opt,
 	metrics=["accuracy"])
 model_.compile(loss="binary_crossentropy", optimizer=opt,
 	metrics=["accuracy"])
+# Set callback functions to early stop training and save the best model so far
+checkpoint = ModelCheckpoint(
+            filepath='output/concrete_best.model',
+            save_weights_only=False,
+            monitor='val_loss',
+            mode = 'min',
+            )
+
+# monitor
+tbCallBack = TensorBoard(log_dir='./Graph', histogram_freq=0, write_graph=True, write_images=True)
+
 
 # train the network
 H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BS),
 	validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS, 
-	epochs=EPOCHS)
-
-
+	epochs=EPOCHS,
+        callbacks=[checkpoint,tbCallBack],
+        )
 
 # evaluate the network
 print("[INFO] evaluating network...")
